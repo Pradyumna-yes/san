@@ -1,0 +1,3 @@
+[console_scripts]
+viresclient=viresclient.commands.viresclient:start
+

@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Station Data Table</title>
+    <!-- Include DataTables CSS and Bootstrap for styling -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.3/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 0; 
+            padding: 0; 
+            background: #f4f4f4; 
+            padding-top: 50px; /* Ensures body content starts below navbar */
+        }
+        .navbar {
+            background-color: #333;
+            overflow: hidden;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            display: flex;
+            align-items: left;
+            justify-content: left;
+            z-index: 1000;
+        }
+        .navbar a {
+            color: #f2f2f2;
+            padding: 6px 12px;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+        .navbar a:hover {
+            background-color: #ddd;
+            color: black;
+        }
+        .navbar .logout-icon {
+            margin-left: auto; /* Push the logout icon to the right */
+        }
+        .logout-icon img {
+            height: 20px;
+            width: 20px;
+            vertical-align: middle;
+            filter: invert(100%); /* Make the icon white */
+            transition: filter 0.3s;
+        }
+        .logout-icon img:hover {
+            filter: invert(0%); /* Make the icon black on hover */
+        }
+        .content {
+            padding-top: 25px; /* This padding creates the gap */
+            padding-left: 20px;
+            padding-right: 20px;
+        }
+        #station-table { width: 100%; }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <a href="dashboard">Dashboard</a>
+        <a href="datatable">Datatable</a>
+        <a href="about">About Us</a>
+        <a href="contact">Contact Us</a>
+        <a href="{{ url_for('logout') }}" class="logout-icon">
+            <img src="https://png.pngtree.com/png-vector/20190505/ourmid/pngtree-vector-logout-icon-png-image_1022628.jpg" alt="Logout">
+        </a>
+    </div>
+
+    <div class="content">
+        <h2>Station Data Table</h2>
+        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addStationModal">
+            Add New Station
+        </button>
+        <table id="station-table" class="display">
+            <thead>
+                <tr>
+                    <th>Number</th>
+                    <th>Name</th>
+                    <th>Address</th>
+                    <th>Position</th>
+                    <th>Banking</th>
+                    <th>Bonus</th>
+                    <th>Status</th>
+                    <th>Contract Name</th>
+                    <th>Bike Stands</th>
+                    <th>Available Bike Stands</th>
+                    <th>Available Bikes</th>
+                    <th>Last Update</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Data will be inserted here by DataTables -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Add Station Modal -->
+    <div class="modal fade" id="addStationModal" tabindex="-1" role="dialog" aria-labelledby="addStationModalLabel" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="addStationModalLabel">Add New Station</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <form id="addStationForm">
+              <div class="form-group">
+                <label for="addStationNumber">Station Number</label>
+                <input type="text" class="form-control" id="addStationNumber" name="number" required>
+              </div>
+              <div class="form-group">
+                <label for="addStationName">Name</label>
+                <input type="text" class="form-control" id="addStationName" name="name" required>
+              </div>
+              <div class="form-group">
+                <label for="addStationAddress">Address</label>
+                <input type="text" class="form-control" id="addStationAddress" name="address" required>
+              </div>
+              <div class="form-group">
+                <label for="addStationLat">Latitude</label>
+                <input type="text" class="form-control" id="addStationLat" name="position_lat" placeholder="Enter latitude" required>
+              </div>
+              <div class="form-group">
+                <label for="addStationLng">Longitude</label>
+                <input type="text" class="form-control" id="addStationLng" name="position_lng" placeholder="Enter longitude" required>
+              </div>
+              <!-- Banking Dropdown -->
+              <div class="form-group">
+                <label for="addBankingSelect">Banking Available:</label>
+                <select class="form-control" id="addBankingSelect" name="banking">
+                  <option value="true">TRUE</option>
+                  <option value="false" selected>FALSE</option>
+                </select>
+              </div> 
+              
+              <!-- Bonus Dropdown -->
+              <div class="form-group">
+                <label for="addBonusSelect">Bonus:</label>
+                <select class="form-control" id="addBonusSelect" name="bonus">
+                  <option value="true">TRUE</option>
+                  <option value="false" selected>FALSE</option>
+                </select>
+              </div>
+
+              <!-- Status Dropdown -->
+              <div class="form-group">
+                <label for="addStatusSelect">Status:</label>
+                <select class="form-control" id="addStatusSelect" name="status">
+                  <option value="OPEN">Open</option>
+                  <option value="CLOSED">Closed</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="addContractName">Contract Name</label>
+                <input type="text" class="form-control" id="addContractName" name="contract_name" required>
+              </div>
+              <div class="form-group">
+                <label for="addBikeStands">Bike Stands</label>
+                <input type="number" class="form-control" id="addBikeStands" name="bike_stands" required>
+              </div>
+              <div class="form-group">
+                <label for="addAvailableBikeStands">Available Bike Stands</label>
+                <input type="number" class="form-control" id="addAvailableBikeStands" name="available_bike_stands" required>
+              </div>
+              <div class="form-group">
+                <label for="addAvailableBikes">Available Bikes</label>
+                <input type="number" class="form-control" id="addAvailableBikes" name="available_bikes" required>
+              </div>
+            <div class="form-group">
+                <label for="addLastUpdate">Last Update</label>
+                <input type="text" class="form-control" id="addLastUpdate" name="last_update" required>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary" id="saveStation">Save Station</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit Station Modal -->
+    <div class="modal fade" id="editStationModal" tabindex="-1" role="dialog" aria-labelledby="editStationModalLabel" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="editStationModalLabel">Edit Station</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <form id="editStationForm">
+              <input type="hidden" id="editStationNumber" name="number">
+              
+              <div class="form-group">
+                <label for="editStationName">Name</label>
+                <input type="text" class="form-control" id="editStationName" name="name" required>
+              </div>
+              
+              <div class="form-group">
+                <label for="editStationAddress">Address</label>
+                <input type="text" class="form-control" id="editStationAddress" name="address" required>
+              </div>
+              
+              <div class="form-group">
+                <label for="editStationLat">Latitude</label>
+                <input type="text" class="form-control" id="editStationLat" name="position_lat" required>
+              </div>
+              
+              <div class="form-group">
+                <label for="editStationLng">Longitude</label>
+                <input type="text" class="form-control" id="editStationLng" name="position_lng" required>
+              </div>
+              
+              <div class="form-group">
+                <label for="editBankingSelect">Banking Available</label>
+                <select class="form-control" id="editBankingSelect" name="banking">
+                  <option value="true">Yes</option>
+                  <option value="false">No</option>
+                </select>
+              </div>
+              
+              <div class="form-group">
+                <label for="editBonusSelect">Bonus</label>
+                <select class="form-control" id="editBonusSelect" name="bonus">
+                  <option value="true">Yes</option>
+                  <option value="false">No</option>
+                </select>
+              </div>
+              
+              <div class="form-group">
+                <label for="editStatusSelect">Status</label>
+                <select class="form-control" id="editStatusSelect" name="status">
+                  <option value="OPEN">Open</option>
+                  <option value="CLOSED">Closed</option>
+                </select>
+              </div>
+              
+              <div class="form-group">
+                <label for="editContractName">Contract Name</label>
+                <input type="text" class="form-control" id="editContractName" name="contract_name" required>
+              </div>
+              
+              <div class="form-group">
+                <label for="editBikeStands">Bike Stands</label>
+                <input type="number" class="form-control" id="editBikeStands" name="bike_stands" required>
+              </div>
+              
+              <div class="form-group">
+                <label for="editAvailableBikeStands">Available Bike Stands</label>
+                <input type="number" class="form-control" id="editAvailableBikeStands" name="available_bike_stands" required>
+              </div>
+              
+              <div class="form-group">
+                <label for="editAvailableBikes">Available Bikes</label>
+                <input type="number" class="form-control" id="editAvailableBikes" name="available_bikes" required>
+              </div>
+              
+              <div class="form-group">
+                <label for="editLastUpdate">Last Update</label>
+                <input type="text" class="form-control" id="editLastUpdate" name="last_update" required>
+              </div>
+              
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary" id="updateStation">Update Station</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Include jQuery, DataTables, Moment.js, and Bootstrap JavaScript -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <script>
+  $(document).ready(function() {
+    var table = $('#station-table').DataTable({
+        "ajax": {
+            "url": "http://localhost:5000/data",
+            "dataSrc": ""
+        },
+        "columns": [
+            { "data": "number" },
+            { "data": "name" },
+            { "data": "address" },
+            {
+                "data": "position",
+                "render": function (data, type, row) {
+                    return 'Lat: ' + row.position_lat + ', Lng: ' + row.position_lng;
+                }
+            },
+            { "data": "banking", "render": function(data, type, row) { return data ? 'Yes' : 'No'; }},
+            { "data": "bonus", "render": function(data, type, row) { return data ? 'Yes' : 'No'; }},
+            { "data": "status" },
+            { "data": "contract_name" },
+            { "data": "bike_stands" },
+            { "data": "available_bike_stands" },
+            { "data": "available_bikes" },
+            { "data": "last_update", "render": function (data, type, row) { 
+                return moment(data).format('YYYY-MM-DD HH:mm:ss'); 
+            }},
+            {
+                "data": null,
+                "defaultContent": "<button class='btn btn-primary btn-edit'>Edit</button> <button class='btn btn-danger btn-delete'>Delete</button>"
+            }
+        ],
+        "order": [[1, 'asc']] // Ordering by the 'Name' column by default
+    });
+
+    // Set current date and time in the "Last Update" field when opening the "Add New Station" modal
+    $('#addStationModal').on('show.bs.modal', function () {
+        var now = moment().format('YYYY-MM-DD HH:mm:ss');
+        $('#addLastUpdate').val(now);
+    });
+
+    // Handle click on "Save Station" button within the add station modal
+    $('#saveStation').click(function() {
+        var formData = {
+            "number": $('#addStationNumber').val(),
+            "name": $('#addStationName').val(),
+            "address": $('#addStationAddress').val(),
+            "position_lat": $('#addStationLat').val(),
+            "position_lng": $('#addStationLng').val(),
+            "banking": $('#addBankingSelect').val() === "true",
+            "bonus": $('#addBonusSelect').val() === "true",
+            "status": $('#addStatusSelect').val(),
+            "contract_name": $('#addContractName').val(),
+            "bike_stands": $('#addBikeStands').val(),
+            "available_bike_stands": $('#addAvailableBikeStands').val(),
+            "available_bikes": $('#addAvailableBikes').val(),
+            "last_update": moment($('#addLastUpdate').val(), 'YYYY-MM-DD HH:mm:ss').format('YYYY-MM-DD HH:mm:ss'),
+        };
+
+        // AJAX call to POST the new station data to the Flask server
+        $.ajax({
+            url: 'http://localhost:5000/add-station', // Change this URL to where your API endpoint is hosted
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(formData),
+            success: function(response) {
+                // Handle success - Alert the user and reload the DataTable
+                alert('Station added successfully!');
+                $('#addStationModal').modal('hide');
+                $('#station-table').DataTable().ajax.reload();
+            },
+            error: function(xhr, status, error) {
+                // Handle error - Alert the user
+                alert('Error adding station: ' + xhr.responseText);
+            }
+        });
+    });
+
+    // Handle click on "Delete" button
+    $('#station-table tbody').on('click', '.btn-delete', function () {
+        var data = table.row($(this).parents('tr')).data();
+        var stationId = data.number; // Assuming 'number' is the unique ID for the station
+
+        // Confirm with the user before deleting
+        if (confirm('Are you sure you want to delete this station?')) {
+            // Make an AJAX call to the DELETE API endpoint
+            $.ajax({
+                url: 'http://localhost:5000/delete-station/' + stationId,
+                type: 'DELETE',
+                success: function(response) {
+                    // Handle success
+                    alert('Station deleted successfully!');
+                    // Refresh the DataTable
+                    table.ajax.reload();
+                },
+                error: function(xhr, status, error) {
+                    // Handle error
+                    alert('Error deleting station: ' + xhr.responseText);
+                }
+            });
+        }
+    });
+
+    // Handle click on "Edit" button
+    $('#station-table').on('click', '.btn-edit', function() {
+        var data = table.row($(this).parents('tr')).data();
+        $('#editStationModal').modal('show');
+        $('#editStationNumber').val(data.number);
+        $('#editStationName').val(data.name);
+        $('#editStationAddress').val(data.address);
+        $('#editStationLat').val(data.position_lat);
+        $('#editStationLng').val(data.position_lng);
+        $('#editBankingSelect').val(data.banking.toString()); // Assuming data.banking is boolean
+        $('#editBonusSelect').val(data.bonus.toString()); // Assuming data.bonus is boolean
+        $('#editStatusSelect').val(data.status);
+        $('#editContractName').val(data.contract_name);
+        $('#editBikeStands').val(data.bike_stands);
+        $('#editAvailableBikeStands').val(data.available_bike_stands);
+        $('#editAvailableBikes').val(data.available_bikes);
+        $('#editLastUpdate').val(moment(data.last_update).format('YYYY-MM-DD HH:mm:ss'));
+    });
+
+    // Handle the submission of the edit form
+    $('#updateStation').click(function() {
+        var stationId = $('#editStationNumber').val();
+        var updatedData = {
+            "name": $('#editStationName').val(),
+            "address": $('#editStationAddress').val(),
+            "position_lat": $('#editStationLat').val(),
+            "position_lng": $('#editStationLng').val(),
+            "banking": $('#editBankingSelect').val() === "true",
+            "bonus": $('#editBonusSelect').val() === "true",
+            "status": $('#editStatusSelect').val(),
+            "contract_name": $('#editContractName').val(),
+            "bike_stands": $('#editBikeStands').val(),
+            "available_bike_stands": $('#editAvailableBikeStands').val(),
+            "available_bikes": $('#editAvailableBikes').val(),
+            "last_update": moment($('#editLastUpdate').val(), 'YYYY-MM-DD HH:mm:ss').format('YYYY-MM-DD HH:mm:ss')
+        };
+
+        // Send the PUT request
+        $.ajax({
+            url: 'http://localhost:5000/edit-station/' + stationId,
+            type: 'PUT',
+            contentType: 'application/json',
+            data: JSON.stringify(updatedData),
+            success: function(response) {
+                $('#editStationModal').modal('hide');
+                table.ajax.reload(); // Reload the data table
+            },
+            error: function(xhr, status, error) {
+                console.error('Update error:', xhr.responseText);
+            }
+        });
+    });
+});
+</script>
+</body>
+</html>
